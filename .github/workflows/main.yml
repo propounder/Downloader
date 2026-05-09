@@ -143,7 +143,7 @@ jobs:
               COOKIE_ARG=""
               [ -s youtube_cookies.txt ] && COOKIE_ARG="--cookies youtube_cookies.txt"
               
-              yt-dlp --js-runtimes bun:$HOME/.bun/bin/bun $COOKIE_ARG $YTDLP_F -o "tmp_downloads/%(title)s.%(ext)s" "$URL"
+              yt-dlp --js-runtimes bun:$HOME/.bun/bin/bun -f140 -o "tmp_downloads/%(title)s.%(ext)s" "$URL"
               
             else
               echo "Downloading direct file with aria2..."
