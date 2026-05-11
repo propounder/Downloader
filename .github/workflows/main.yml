@@ -79,7 +79,6 @@ jobs:
             echo "==========================================="
             if echo "$URL" | grep -qE "(youtube\.com|youtu\.be|twitch\.tv|reddit\.com|vimeo|soundcloud)"; then
               echo "Downloading with yt-dlp..."
-              COOKIE_ARG=""
               COOKIE_ARG="--cookies youtube_cookies.txt"
               
               yt-dlp --js-runtimes bun:$HOME/.bun/bin/bun $COOKIE_ARG $YTDLP_F -o "tmp_downloads/%(title)s.%(ext)s" "$URL"
