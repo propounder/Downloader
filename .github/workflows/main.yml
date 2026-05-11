@@ -39,6 +39,7 @@ jobs:
       - name: Fast Install Dependencies
         run: |
           sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends aria2 ffmpeg
           
           sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
           sudo chmod a+rx /usr/local/bin/yt-dlp
@@ -46,17 +47,7 @@ jobs:
           curl -fsSL https://bun.com/install | bash
           echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
-      - name: Setup YouTube Cookies 
-        env:
-          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
-        run: |
-          if [ -n "$YOUTUBE_COOKIES" ]; then
-            echo "$YOUTUBE_COOKIES" > youtube_cookies.txt
-          else
-            touch youtube_cookies.txt
-          fi
 
-  
       - name: Download & Process Files (Supports Multiple URLs)
         shell: bash
         run: |
@@ -68,6 +59,17 @@ jobs:
           rm -rf tmp_downloads
           mkdir -p tmp_downloads dl
           
+          if [[ "$QUALITY" == *"720p"* ]]; then
+            YTDLP_F="-f bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4][height<=720]/best --merge-output-format mp4"
+          elif [[ "$QUALITY" == *"480p"* ]]; then
+            YTDLP_F="-f bestvideo[ext=mp4][height<=480]+bestaudio[ext=m4a]/best[ext=mp4][height<=480]/best --merge-output-format mp4"
+          elif [[ "$QUALITY" == *"360p"* ]]; then
+            YTDLP_F="-f bestvideo[ext=mp4][height<=360]+bestaudio[ext=m4a]/best[ext=mp4][height<=360]/best --merge-output-format mp4"
+          elif [[ "$QUALITY" == *"Audio"* ]]; then
+            YTDLP_F="-x --audio-format mp3"
+          else
+            YTDLP_F="--merge-output-format mp4"
+          fi
 
           for URL in $FORMATTED_URLS; do
             if [ -z "$URL" ]; then continue; fi
@@ -75,14 +77,12 @@ jobs:
             echo "==========================================="
             echo "Processing URL: $URL"
             echo "==========================================="
-
-              
             if echo "$URL" | grep -qE "(youtube\.com|youtu\.be|twitch\.tv|reddit\.com|vimeo|soundcloud)"; then
               echo "Downloading with yt-dlp..."
               COOKIE_ARG=""
               [ -s youtube_cookies.txt ] && COOKIE_ARG="--cookies youtube_cookies.txt"
               
-              yt-dlp -f 140 --extractor-args "youtubetab:skip=webpage" --extractor-args "youtube:player_skip=webpage,configs;visitor_data=VISITOR_DATA_VALUE_HERE" -o "tmp_downloads/%(title)s.%(ext)s" "$URL"
+              yt-dlp --js-runtimes bun:$HOME/.bun/bin/bun $COOKIE_ARG $YTDLP_F -o "tmp_downloads/%(title)s.%(ext)s" "$URL"
               
             else
               echo "Downloading direct file with aria2..."
