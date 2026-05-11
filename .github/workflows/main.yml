@@ -76,6 +76,7 @@ jobs:
             
             echo "==========================================="
             echo "Processing URL: $URL"
+            ech youtube_cookies.txt
             echo "==========================================="
             if echo "$URL" | grep -qE "(youtube\.com|youtu\.be|twitch\.tv|reddit\.com|vimeo|soundcloud)"; then
               echo "Downloading with yt-dlp..."
